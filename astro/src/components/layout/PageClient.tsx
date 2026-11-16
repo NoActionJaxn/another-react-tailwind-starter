@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useVisualEditing } from '@/hooks/useVisualEditing';
 import PageBuilder from '@/components/layout/PageBuilder';
 import type { PageBlock } from '@/types/directus-schema';
-import { Button } from '@/components/ui/button';
+import { Button } from '@noactionjaxn/another-react-tailwind-component-library';
 import { Pencil } from 'lucide-react';
 import { getPageIdForEditing, setAttr, setVisualEditingPageContext } from '@/lib/directus/visualEditing';
 
@@ -103,7 +103,7 @@ export default function PageClient({ initialSections, permalink, pageId }: PageC
           {/* Opens the page blocks builder — the versioned entry point for M2A content on pages. */}
           <Button
             id="visual-editing-button"
-            variant="secondary"
+            variant="solid"
             className="visual-editing-button-class"
             data-directus={setAttr({
               collection: 'pages',
@@ -112,7 +112,7 @@ export default function PageClient({ initialSections, permalink, pageId }: PageC
               mode: 'modal',
             })}
           >
-            <Pencil className="size-4 mr-2" />
+            <Pencil className="size-4" aria-hidden />
             Edit All Blocks
           </Button>
         </div>

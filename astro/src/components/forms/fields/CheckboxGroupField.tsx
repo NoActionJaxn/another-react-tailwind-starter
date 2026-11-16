@@ -1,37 +1,40 @@
-import { Checkbox } from '@/components/ui/checkbox';
-import type { UseFormReturn } from 'react-hook-form';
+import { Checkbox } from '@noactionjaxn/another-react-tailwind-component-library';
+import { Controller, type UseFormReturn } from 'react-hook-form';
 
 interface CheckboxGroupFieldProps {
   name: string;
   options: { value: string; text: string }[];
-  form: UseFormReturn<Record<string, string[]>>;
+  form: UseFormReturn;
 }
 
-const CheckboxGroupField = ({ name, options, form }: CheckboxGroupFieldProps) => {
-  const currentValues = form.watch(name) || [];
+const CheckboxGroupField = ({ name, options, form }: CheckboxGroupFieldProps) => (
+  <Controller
+    control={form.control}
+    name={name}
+    render={({ field, fieldState }) => {
+      const values: string[] = Array.isArray(field.value) ? field.value : [];
 
-  const toggleValue = (value: string, checked?: boolean) => {
-    const updatedValues = checked ? [...currentValues, value] : currentValues.filter((v) => v !== value);
-
-    form.setValue(name, updatedValues);
-  };
-
-  return (
-    <div>
-      {options.map((option) => (
-        <div key={option.value} className="flex items-center gap-x-2">
-          <Checkbox
-            id={`${name}-${option.value}`}
-            checked={currentValues.includes(option.value)}
-            onCheckedChange={(checked) => toggleValue(option.value, !!checked)}
-          />
-          <label htmlFor={`${name}-${option.value}`} className="text-sm">
-            {option.text}
-          </label>
+      return (
+        <div role="group" aria-labelledby={`${name}-label`} className="flex flex-col gap-2">
+          {options.map((option) => (
+            <Checkbox
+              key={option.value}
+              id={`${name}-${option.value}`}
+              label={option.text}
+              checked={values.includes(option.value)}
+              onCheckedChange={(checked) =>
+                field.onChange(
+                  checked === true ? [...values, option.value] : values.filter((value) => value !== option.value),
+                )
+              }
+              onBlur={field.onBlur}
+              aria-invalid={fieldState.invalid || undefined}
+            />
+          ))}
         </div>
-      ))}
-    </div>
-  );
-};
+      );
+    }}
+  />
+);
 
 export default CheckboxGroupField;

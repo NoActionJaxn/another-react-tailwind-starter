@@ -97,4 +97,12 @@ export default [
     },
   },
   ...eslintPluginAstro.configs['flat/recommended'],
+  {
+    files: ['**/*.astro'],
+    rules: {
+      // The import plugin re-parses imported modules with the Astro parser, which can't read the
+      // component library's built JS. TypeScript (`astro check` / tsc) already validates these imports.
+      'import/namespace': 'off',
+    },
+  },
 ];

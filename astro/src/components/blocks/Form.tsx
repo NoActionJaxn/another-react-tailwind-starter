@@ -1,7 +1,7 @@
+import { Container } from '@noactionjaxn/another-react-tailwind-component-library';
 import type { FormField } from '@/types/directus-schema';
-import Tagline from '@/components/ui/Tagline';
 import FormBuilder from '@/components/forms/FormBuilder';
-import Headline from '@/components/ui/Headline';
+import BlockHeading from '@/components/blocks/BlockHeading';
 import { setBlockAttr } from '@/lib/directus/visualEditing';
 
 interface FormBlockProps {
@@ -31,42 +31,37 @@ const FormBlock = ({ data }: FormBlockProps) => {
   }
 
   return (
-    <section className="mx-auto">
-      {tagline && (
-        <Tagline
+    <Container asChild>
+      <section>
+        <BlockHeading
           tagline={tagline}
-          data-directus={setBlockAttr({
+          headline={headline}
+          taglineAttr={setBlockAttr({
             blockCollection: 'block_form',
             blockItemId: data.id,
             fields: 'tagline',
             mode: 'popover',
           })}
-        />
-      )}
-
-      {headline && (
-        <Headline
-          headline={headline}
-          data-directus={setBlockAttr({
+          headlineAttr={setBlockAttr({
             blockCollection: 'block_form',
             blockItemId: data.id,
             fields: 'headline',
             mode: 'popover',
           })}
         />
-      )}
 
-      <div
-        data-directus={setBlockAttr({
-          blockCollection: 'block_form',
-          blockItemId: data.id,
-          fields: ['form'],
-          mode: 'popover',
-        })}
-      >
-        <FormBuilder form={form} blockFormId={data.id} className="mt-8" />
-      </div>
-    </section>
+        <div
+          data-directus={setBlockAttr({
+            blockCollection: 'block_form',
+            blockItemId: data.id,
+            fields: ['form'],
+            mode: 'popover',
+          })}
+        >
+          <FormBuilder form={form} blockFormId={data.id} className="mt-8" />
+        </div>
+      </section>
+    </Container>
   );
 };
 

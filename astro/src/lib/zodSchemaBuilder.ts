@@ -1,6 +1,9 @@
 import { z } from 'zod';
 import type { FormField } from '@/types/directus-schema';
 
+const NUMBER_PATTERN = /^-?\d+(\.\d+)?$/;
+const E164_PATTERN = /^\+[1-9]\d{6,14}$/;
+
 export const buildZodSchema = (fields: FormField[]) => {
   const schema: Record<string, z.ZodTypeAny> = {};
 
@@ -11,6 +14,7 @@ export const buildZodSchema = (fields: FormField[]) => {
 
     switch (field.type) {
       case 'checkbox':
+      case 'switch':
         fieldSchema = z.boolean().default(false);
         if (field.required) {
           fieldSchema = fieldSchema.refine((value) => value === true, `${label} is required`);
@@ -34,6 +38,23 @@ export const buildZodSchema = (fields: FormField[]) => {
       case 'radio':
       case 'select':
         fieldSchema = z.string();
+        break;
+
+      case 'email':
+        fieldSchema = z.string().email({ message: `${label} must be a valid email` });
+        break;
+
+      case 'url':
+        fieldSchema = z.string().url({ message: `${label} must be a valid URL` });
+        break;
+
+      case 'number':
+        fieldSchema = z.string().regex(NUMBER_PATTERN, `${label} must be a number`);
+        break;
+
+      case 'tel':
+        // PhoneInput submits E.164, e.g. +15555555555.
+        fieldSchema = z.string().regex(E164_PATTERN, `${label} must be a valid phone number`);
         break;
 
       case 'file':
@@ -87,12 +108,26 @@ export const buildZodSchema = (fields: FormField[]) => {
 
             case 'min': {
               const min = parseInt(ruleValue, 10);
+              if (field.type === 'number') {
+                fieldSchema = fieldSchema.refine(
+                  (value) => value === '' || Number(value) >= min,
+                  `${field.label || field.name} must be at least ${min}`,
+                );
+                break;
+              }
               fieldSchema = fieldSchema.min(min, `${field.label || field.name} must be at least ${min} characters`);
               break;
             }
 
             case 'max': {
               const max = parseInt(ruleValue, 10);
+              if (field.type === 'number') {
+                fieldSchema = fieldSchema.refine(
+                  (value) => value === '' || Number(value) <= max,
+                  `${field.label || field.name} must be at most ${max}`,
+                );
+                break;
+              }
               fieldSchema = fieldSchema.max(max, `${field.label || field.name} must be at most ${max} characters`);
               break;
             }

@@ -27,8 +27,8 @@ export default function VisualEditingLayout({
   globals,
   children,
 }: VisualEditingLayoutProps) {
-  const navRef = useRef<HTMLElement>(null);
-  const footerRef = useRef<HTMLElement>(null);
+  const navRef = useRef<HTMLDivElement>(null);
+  const footerRef = useRef<HTMLDivElement>(null);
   const { isVisualEditingEnabled, apply } = useVisualEditing();
 
   const { data: siteData, mutate } = useSWR(isVisualEditingEnabled ? '/api/site-data' : null, fetchSiteData, {
@@ -104,7 +104,6 @@ export default function VisualEditingLayout({
         globals={{
           ...safeGlobals,
           logo: typeof safeGlobals.logo === 'string' ? safeGlobals.logo : null,
-          logo_dark_mode: typeof safeGlobals.logo_dark_mode === 'string' ? safeGlobals.logo_dark_mode : null,
           social_links: Array.isArray(safeGlobals.social_links) ? safeGlobals.social_links : undefined,
         }}
       />

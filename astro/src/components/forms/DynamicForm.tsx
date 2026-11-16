@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { getIsDraftPreview, setBlockAttr } from '@/lib/directus/visualEditing';
 import Button from '@/components/blocks/Button';
-import { Form } from '@/components/ui/form';
+import { TooltipProvider } from '@noactionjaxn/another-react-tailwind-component-library';
 import Field from './FormField';
 import { buildZodSchema } from '@/lib/zodSchemaBuilder';
 import type { FormField as FormFieldType } from '@/types/directus-schema';
@@ -33,6 +33,7 @@ const DynamicForm = ({ fields, onSubmit, submitLabel, id, blockFormId }: Dynamic
 
       switch (field.type) {
         case 'checkbox':
+        case 'switch':
           defaults[name] = false as FormValues[typeof name];
           break;
         case 'checkbox_group':
@@ -51,8 +52,9 @@ const DynamicForm = ({ fields, onSubmit, submitLabel, id, blockFormId }: Dynamic
   });
 
   return (
-    <Form {...form}>
+    <TooltipProvider>
       <form
+        noValidate
         onSubmit={form.handleSubmit(onSubmit)}
         className="flex flex-wrap gap-4"
         data-directus={setBlockAttr(
@@ -103,7 +105,7 @@ const DynamicForm = ({ fields, onSubmit, submitLabel, id, blockFormId }: Dynamic
           </div>
         </div>
       </form>
-    </Form>
+    </TooltipProvider>
   );
 };
 

@@ -1,24 +1,34 @@
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import type { UseFormReturn } from 'react-hook-form';
-import React from 'react';
+import { Radio, RadioGroup } from '@noactionjaxn/another-react-tailwind-component-library';
+import { Controller, type UseFormReturn } from 'react-hook-form';
 
 interface RadioGroupFieldProps {
   name: string;
   options: { value: string; text: string }[];
+  required?: boolean;
   form: UseFormReturn;
 }
 
-const RadioGroupField = ({ name, options, form }: RadioGroupFieldProps) => (
-  <RadioGroup value={form.watch(name)} onValueChange={(value) => form.setValue(name, value)} className="">
-    {options.map((option) => (
-      <div key={option.value} className="flex items-center gap-x-2">
-        <RadioGroupItem id={`${name}-${option.value}`} value={option.value} />
-        <label htmlFor={`${name}-${option.value}`} className="text-sm">
-          {option.text}
-        </label>
-      </div>
-    ))}
-  </RadioGroup>
+const RadioGroupField = ({ name, options, required, form }: RadioGroupFieldProps) => (
+  <Controller
+    control={form.control}
+    name={name}
+    render={({ field, fieldState }) => (
+      <RadioGroup
+        name={name}
+        required={required}
+        value={field.value ?? ''}
+        onValueChange={field.onChange}
+        onBlur={field.onBlur}
+        aria-labelledby={`${name}-label`}
+        aria-invalid={fieldState.invalid || undefined}
+        className="flex flex-col gap-2"
+      >
+        {options.map((option) => (
+          <Radio key={option.value} id={`${name}-${option.value}`} value={option.value} label={option.text} />
+        ))}
+      </RadioGroup>
+    )}
+  />
 );
 
 export default RadioGroupField;

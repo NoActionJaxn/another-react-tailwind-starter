@@ -22,7 +22,7 @@ function parseFieldValue(field: FormField, raw: FormDataEntryValue): unknown {
   if (typeof raw !== 'string') {
     return undefined;
   }
-  if (field.type === 'checkbox') {
+  if (field.type === 'checkbox' || field.type === 'switch') {
     return raw === 'true';
   }
   if (field.type === 'checkbox_group') {

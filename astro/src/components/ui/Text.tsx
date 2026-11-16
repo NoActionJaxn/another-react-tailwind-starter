@@ -1,5 +1,5 @@
 import React from 'react';
-import { cn } from '@/lib/utils';
+import { tw } from '@noactionjaxn/another-react-tailwind-component-library';
 
 export interface TextProps {
   content: string;
@@ -10,7 +10,7 @@ export interface TextProps {
 const Text = ({ content, className, 'data-directus': dataDirectus }: TextProps) => {
   return (
     <div
-      className={cn('prose dark:prose-invert', className)}
+      className={tw('prose prose-stone', className)}
       dangerouslySetInnerHTML={{ __html: content }}
       data-directus={dataDirectus}
     />

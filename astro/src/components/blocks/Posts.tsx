@@ -1,19 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ChevronFirst, ChevronLast } from 'lucide-react';
-import Tagline from '@/components/ui/Tagline';
-import Headline from '@/components/ui/Headline';
-import DirectusImage from '@/components/shared/DirectusImage';
 import {
+  Container,
+  GridContainer,
+  ListingCard,
   Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from '@/components/ui/pagination';
+} from '@noactionjaxn/another-react-tailwind-component-library';
+import BlockHeading from '@/components/blocks/BlockHeading';
+import { getDirectusAssetURL } from '@/lib/directus/directus-utils';
 import type { Post } from '@/types/directus-schema';
 import { fetchPaginatedPosts } from '@/lib/directus/fetchers';
 import { setBlockAttr } from '@/lib/directus/visualEditing';
@@ -31,7 +26,6 @@ interface PostsProps {
 
 const Posts = ({ data }: PostsProps) => {
   const { tagline, headline, posts, limit, totalPages, id } = data;
-  const visiblePages = 5;
   const perPage = limit || 6;
 
   const [currentPage, setCurrentPage] = useState(() => {
@@ -75,174 +69,57 @@ const Posts = ({ data }: PostsProps) => {
     }
   };
 
-  const generatePagination = () => {
-    const pages: (number | string)[] = [];
-
-    if (totalPages <= visiblePages) {
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
-    } else {
-      const rangeStart = Math.max(1, currentPage - 2);
-      const rangeEnd = Math.min(totalPages, currentPage + 2);
-
-      if (rangeStart > 1) {
-        pages.push(1);
-        if (rangeStart > 2) pages.push('ellipsis-start');
-      }
-
-      for (let i = rangeStart; i <= rangeEnd; i++) {
-        pages.push(i);
-      }
-
-      if (rangeEnd < totalPages - 1) pages.push('ellipsis-end');
-      if (rangeEnd < totalPages) pages.push(totalPages);
-    }
-
-    return pages;
-  };
-
-  const paginationLinks = generatePagination();
+  const attr = (fields: string | string[]) =>
+    setBlockAttr({ blockCollection: 'block_posts', blockItemId: id, fields, mode: 'popover' });
 
   return (
-    <div>
-      {tagline && (
-        <Tagline
+    <Container asChild>
+      <div>
+        <BlockHeading
           tagline={tagline}
-          data-directus={setBlockAttr({
-            blockCollection: 'block_posts',
-            blockItemId: id,
-            fields: 'tagline',
-            mode: 'popover',
-          })}
-        />
-      )}
-      {headline && (
-        <Headline
           headline={headline}
-          data-directus={setBlockAttr({
-            blockCollection: 'block_posts',
-            blockItemId: id,
-            fields: 'headline',
-            mode: 'popover',
-          })}
+          taglineAttr={attr('tagline')}
+          headlineAttr={attr('headline')}
         />
-      )}
 
-      <div
-        className="mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6"
-        data-directus={setBlockAttr({
-          blockCollection: 'block_posts',
-          blockItemId: id,
-          fields: ['collection', 'limit'],
-          mode: 'popover',
-        })}
-      >
         {paginatedPosts && paginatedPosts.length > 0 ? (
-          paginatedPosts.map((post) => (
-            <a key={post.id} href={`/blog/${post.slug}`} className="group block overflow-hidden rounded-lg">
-              <div className="relative w-full h-64 rounded-lg overflow-hidden">
-                {post.image && (
-                  <DirectusImage
-                    uuid={typeof post.image === 'string' ? post.image : post.image?.id}
-                    alt={post.title}
-                    fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    className="w-full h-auto object-cover rounded-lg transition-transform duration-300 group-hover:scale-110"
-                  />
-                )}
-              </div>
-              <div className="p-4">
-                <h3 className="text-xl group-hover:text-accent font-heading transition-colors duration-300">
-                  {post.title}
-                </h3>
-                {post.description && <p className="text-sm text-foreground mt-2">{post.description}</p>}
-              </div>
-            </a>
-          ))
+          <GridContainer
+            block
+            columns={3}
+            minColumnWidth="16rem"
+            gap="lg"
+            className="mt-8 px-0"
+            data-directus={attr(['collection', 'limit'])}
+          >
+            {paginatedPosts.map((post) => (
+              <a key={post.id} href={`/blog/${post.slug}`} className="group block h-full no-underline">
+                <ListingCard
+                  className="h-full transition-shadow group-hover:shadow-lg"
+                  title={post.title}
+                  subtitle={post.description || undefined}
+                  imageSrc={post.image ? getDirectusAssetURL(post.image) : undefined}
+                  imageAlt={post.title}
+                />
+              </a>
+            ))}
+          </GridContainer>
         ) : (
-          <p className="text-center text-gray-500">No posts available.</p>
+          <p className="mt-8 text-center opacity-70" data-directus={attr(['collection', 'limit'])}>
+            No posts available.
+          </p>
+        )}
+
+        {totalPages > 1 && (
+          <Pagination
+            className="mt-10 justify-center"
+            page={currentPage}
+            pageCount={totalPages}
+            onPageChange={handlePageChange}
+            showFirstLast
+          />
         )}
       </div>
-      {totalPages > 1 && (
-        <Pagination>
-          <PaginationContent>
-            {totalPages > visiblePages && currentPage > 1 && (
-              <PaginationItem>
-                <PaginationLink
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handlePageChange(1);
-                  }}
-                >
-                  <ChevronFirst className="size-5" />
-                </PaginationLink>
-              </PaginationItem>
-            )}
-
-            {totalPages > visiblePages && currentPage > 1 && (
-              <PaginationItem>
-                <PaginationPrevious
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handlePageChange(currentPage - 1);
-                  }}
-                />
-              </PaginationItem>
-            )}
-
-            {paginationLinks.map((page, index) =>
-              typeof page === 'number' ? (
-                <PaginationItem key={index}>
-                  <PaginationLink
-                    href="#"
-                    isActive={currentPage === page}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handlePageChange(page);
-                    }}
-                  >
-                    {page}
-                  </PaginationLink>
-                </PaginationItem>
-              ) : (
-                <PaginationItem key={index}>
-                  <PaginationEllipsis />
-                </PaginationItem>
-              ),
-            )}
-
-            {totalPages > visiblePages && currentPage < totalPages && (
-              <PaginationItem>
-                <PaginationNext
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handlePageChange(currentPage + 1);
-                  }}
-                />
-              </PaginationItem>
-            )}
-
-            {totalPages > visiblePages && currentPage < totalPages && (
-              <PaginationItem>
-                <PaginationLink
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handlePageChange(totalPages);
-                  }}
-                >
-                  <ChevronLast className="size-5" />
-                </PaginationLink>
-              </PaginationItem>
-            )}
-          </PaginationContent>
-        </Pagination>
-      )}
-    </div>
+    </Container>
   );
 };
 

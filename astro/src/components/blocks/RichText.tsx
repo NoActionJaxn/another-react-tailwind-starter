@@ -1,6 +1,6 @@
-import Tagline from '@/components/ui/Tagline';
-import Headline from '@/components/ui/Headline';
+import { Container, tw } from '@noactionjaxn/another-react-tailwind-component-library';
 import Text from '@/components/ui/Text';
+import BlockHeading from '@/components/blocks/BlockHeading';
 import { setBlockAttr } from '@/lib/directus/visualEditing';
 
 interface RichTextProps {
@@ -14,45 +14,47 @@ interface RichTextProps {
   className?: string;
 }
 
+const alignments = {
+  left: 'text-left',
+  center: 'text-center',
+  right: 'text-right',
+} as const;
+
 const RichText = ({ data, className }: RichTextProps) => {
   const { id, tagline, headline, content, alignment = 'left' } = data;
 
   return (
-    <div className={`mx-auto max-w-[600px] space-y-6 text-${alignment} ${className}`}>
-      {tagline && (
-        <Tagline
+    <Container>
+      <div className={tw('mx-auto max-w-[600px] space-y-6', alignments[alignment] ?? alignments.left, className)}>
+        <BlockHeading
           tagline={tagline}
-          data-directus={setBlockAttr({
+          headline={headline}
+          taglineAttr={setBlockAttr({
             blockCollection: 'block_richtext',
             blockItemId: id,
             fields: 'tagline',
             mode: 'popover',
           })}
-        />
-      )}
-      {headline && (
-        <Headline
-          headline={headline}
-          data-directus={setBlockAttr({
+          headlineAttr={setBlockAttr({
             blockCollection: 'block_richtext',
             blockItemId: id,
             fields: 'headline',
             mode: 'popover',
           })}
         />
-      )}
-      {content && (
-        <Text
-          content={content}
-          data-directus={setBlockAttr({
-            blockCollection: 'block_richtext',
-            blockItemId: id,
-            fields: 'content',
-            mode: 'drawer',
-          })}
-        />
-      )}
-    </div>
+        {content && (
+          <Text
+            content={content}
+            data-directus={setBlockAttr({
+              blockCollection: 'block_richtext',
+              blockItemId: id,
+              fields: 'content',
+              mode: 'drawer',
+            })}
+          />
+        )}
+      </div>
+    </Container>
   );
 };
 

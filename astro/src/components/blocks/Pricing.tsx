@@ -1,33 +1,15 @@
-import Tagline from '@/components/ui/Tagline';
-import Headline from '@/components/ui/Headline';
-import PricingCard from '@/components/blocks/PricingCard';
+import { Container, GridContainer } from '@noactionjaxn/another-react-tailwind-component-library';
+import BlockHeading from '@/components/blocks/BlockHeading';
+import PricingCard, { type PricingCardProps } from '@/components/blocks/PricingCard';
 import { setBlockAttr } from '@/lib/directus/visualEditing';
 
-interface PricingCardType {
-  id: string;
-  title: string;
-  description?: string;
-  price?: string;
-  badge?: string;
-  features?: string[];
-  button?: {
-    id: string;
-    label: string | null;
-    variant: string | null;
-    url: string | null;
-  };
-  is_highlighted?: boolean;
-}
-
-interface PricingData {
-  id: string;
-  tagline?: string;
-  headline?: string;
-  pricing_cards: PricingCardType[];
-}
-
 interface PricingProps {
-  data: PricingData;
+  data: {
+    id: string;
+    tagline?: string;
+    headline?: string;
+    pricing_cards: PricingCardProps['card'][];
+  };
 }
 
 const Pricing = ({ data }: PricingProps) => {
@@ -37,51 +19,35 @@ const Pricing = ({ data }: PricingProps) => {
     return null;
   }
 
-  const gridClasses = (() => {
-    if (pricing_cards.length === 1) return 'grid-cols-1';
-    if (pricing_cards.length % 3 === 0) return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3';
+  const attr = (fields: string | string[], mode: 'popover' | 'modal' = 'popover') =>
+    setBlockAttr({ blockCollection: 'block_pricing', blockItemId: id, fields, mode });
 
-    return 'grid-cols-1 sm:grid-cols-2';
-  })();
+  // One card fills the row; multiples of three get three columns; otherwise two.
+  const columns = pricing_cards.length === 1 ? 1 : pricing_cards.length % 3 === 0 ? 3 : 2;
 
   return (
-    <section>
-      {tagline && (
-        <Tagline
+    <Container asChild>
+      <section>
+        <BlockHeading
           tagline={tagline}
-          data-directus={setBlockAttr({
-            blockCollection: 'block_pricing',
-            blockItemId: id,
-            fields: 'tagline',
-            mode: 'popover',
-          })}
-        />
-      )}
-      {headline && (
-        <Headline
           headline={headline}
-          data-directus={setBlockAttr({
-            blockCollection: 'block_pricing',
-            blockItemId: id,
-            fields: 'headline',
-            mode: 'popover',
-          })}
+          taglineAttr={attr('tagline')}
+          headlineAttr={attr('headline')}
         />
-      )}
-      <div
-        className={`grid gap-6 mt-8 ${gridClasses}`}
-        data-directus={setBlockAttr({
-          blockCollection: 'block_pricing',
-          blockItemId: id,
-          fields: ['pricing_cards'],
-          mode: 'modal',
-        })}
-      >
-        {pricing_cards.map((card) => (
-          <PricingCard key={card.id} card={card} />
-        ))}
-      </div>
-    </section>
+        <GridContainer
+          block
+          columns={columns}
+          minColumnWidth="16rem"
+          gap="lg"
+          className="mt-8 px-0"
+          data-directus={attr(['pricing_cards'], 'modal')}
+        >
+          {pricing_cards.map((card) => (
+            <PricingCard key={card.id} card={card} />
+          ))}
+        </GridContainer>
+      </section>
+    </Container>
   );
 };
 

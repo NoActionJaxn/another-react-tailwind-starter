@@ -131,7 +131,7 @@ export interface BlockHero {
 	/** @description Smaller copy shown above the headline to label a section or add extra context. */
 	tagline?: string | null;
 	/** @description The layout for the component. You can set the image to display left, right, or in the center of page.. */
-	layout?: 'image_left' | 'image_center' | 'image_right' | null;
+	layout?: 'image_left' | 'image_right' | 'full' | null;
 	date_created?: string | null;
 	user_created?: DirectusUser | string | null;
 	date_updated?: string | null;
@@ -212,13 +212,126 @@ export interface BlockRichtext {
 	user_updated?: DirectusUser | string | null;
 }
 
+export interface BlockCta {
+	/** @primaryKey */
+	id: string;
+	/** @description Small label above the headline. */
+	tagline?: string | null;
+	/** @description Main call-to-action headline. */
+	headline?: string | null;
+	/** @description Supporting copy below the headline. */
+	description?: string | null;
+	/** @description Centered stacks everything in the middle; split puts the buttons beside the text. */
+	layout?: 'centered' | 'split' | null;
+	/** @description Background style of the call-to-action panel. */
+	variant?: 'soft' | 'solid' | 'outline' | 'ghost' | null;
+	/** @description Buttons shown with the call to action. */
+	button_group?: BlockButtonGroup | string | null;
+	date_created?: string | null;
+	user_created?: DirectusUser | string | null;
+	date_updated?: string | null;
+	user_updated?: DirectusUser | string | null;
+}
+
+export interface BlockFaqItem {
+	question: string;
+	answer: string;
+}
+
+export interface BlockFaq {
+	/** @primaryKey */
+	id: string;
+	/** @description Small label above the headline. */
+	tagline?: string | null;
+	/** @description Headline for the FAQ section. */
+	headline?: string | null;
+	/** @description Optional intro shown under the headline. */
+	description?: string | null;
+	/** @description Stacked puts the heading above the questions; split puts it beside them. */
+	layout?: 'stacked' | 'split' | null;
+	/** @description Questions and answers. */
+	items?: BlockFaqItem[] | null;
+	date_created?: string | null;
+	user_created?: DirectusUser | string | null;
+	date_updated?: string | null;
+	user_updated?: DirectusUser | string | null;
+}
+
+export interface BlockSponsor {
+	/** @primaryKey */
+	id: string;
+	/** @description Small label above the headline. */
+	tagline?: string | null;
+	/** @description Headline for the sponsors section. */
+	headline?: string | null;
+	/** @description Sponsor logos, in order. */
+	items?: BlockSponsorsItem[] | string[];
+	date_created?: string | null;
+	user_created?: DirectusUser | string | null;
+	date_updated?: string | null;
+	user_updated?: DirectusUser | string | null;
+}
+
+export interface BlockSponsorsItem {
+	/** @primaryKey */
+	id: string;
+	sort?: number | null;
+	sponsors?: BlockSponsor | string | null;
+	/** @description Sponsor logo. */
+	image?: DirectusFile | string | null;
+	/** @description Sponsor name, used as the logo's alt text. */
+	name?: string | null;
+	/** @description Where the logo links to. */
+	url?: string | null;
+	date_created?: string | null;
+	user_created?: DirectusUser | string | null;
+	date_updated?: string | null;
+	user_updated?: DirectusUser | string | null;
+}
+
+export interface BlockAccolade {
+	/** @primaryKey */
+	id: string;
+	/** @description Small label above the headline. */
+	tagline?: string | null;
+	/** @description Headline for the testimonials section. */
+	headline?: string | null;
+	/** @description How each testimonial animates in. */
+	animation?: 'none' | 'fade' | 'pop' | null;
+	/** @description Testimonials, in order. */
+	items?: BlockAccoladesItem[] | string[];
+	date_created?: string | null;
+	user_created?: DirectusUser | string | null;
+	date_updated?: string | null;
+	user_updated?: DirectusUser | string | null;
+}
+
+export interface BlockAccoladesItem {
+	/** @primaryKey */
+	id: string;
+	sort?: number | null;
+	accolades?: BlockAccolade | string | null;
+	/** @description The testimonial or award text. */
+	quote?: string | null;
+	/** @description Who said it. */
+	source?: string | null;
+	/** @description Optional photo or publication logo. */
+	image?: DirectusFile | string | null;
+	/** @description Optional link to the source. */
+	url?: string | null;
+	date_created?: string | null;
+	user_created?: DirectusUser | string | null;
+	date_updated?: string | null;
+	user_updated?: DirectusUser | string | null;
+}
+
 export interface FormField {
 	/** @primaryKey */
 	id: string;
 	/** @description Unique field identifier, not shown to users (lowercase, hyphenated) */
 	name?: string | null;
 	/** @description Input type for the field */
-	type?: 'text' | 'textarea' | 'checkbox' | 'checkbox_group' | 'radio' | 'file' | 'select' | 'hidden' | null;
+	type?: 'text' | 'textarea' | 'email' | 'url' | 'number' | 'tel' | 'checkbox' | 'switch' | 'checkbox_group' | 'radio' | 'file' | 'select' | 'hidden' | null;
 	/** @description Text label shown to form users. */
 	label?: string | null;
 	/** @description Default text shown in empty input. */
@@ -377,7 +490,7 @@ export interface PageBlock {
 	/** @description The id of the page that this block belongs to. */
 	page?: Page | string | null;
 	/** @description The data for the block. */
-	item?: BlockHero | BlockRichtext | BlockForm | BlockPost | BlockGallery | BlockPricing | string | null;
+	item?: BlockHero | BlockRichtext | BlockForm | BlockPost | BlockGallery | BlockPricing | BlockCta | BlockFaq | BlockSponsor | BlockAccolade | string | null;
 	/** @description The collection (type of block). */
 	collection?: string | null;
 	/** @description Temporarily hide this block on the website without having to remove it from your page. */
@@ -1007,6 +1120,12 @@ export interface Schema {
 	block_pricing: BlockPricing[];
 	block_pricing_cards: BlockPricingCard[];
 	block_richtext: BlockRichtext[];
+	block_cta: BlockCta[];
+	block_faq: BlockFaq[];
+	block_sponsors: BlockSponsor[];
+	block_sponsors_items: BlockSponsorsItem[];
+	block_accolades: BlockAccolade[];
+	block_accolades_items: BlockAccoladesItem[];
 	form_fields: FormField[];
 	forms: Form[];
 	form_submissions: FormSubmission[];
@@ -1062,6 +1181,12 @@ export enum CollectionNames {
 	block_pricing = 'block_pricing',
 	block_pricing_cards = 'block_pricing_cards',
 	block_richtext = 'block_richtext',
+	block_cta = 'block_cta',
+	block_faq = 'block_faq',
+	block_sponsors = 'block_sponsors',
+	block_sponsors_items = 'block_sponsors_items',
+	block_accolades = 'block_accolades',
+	block_accolades_items = 'block_accolades_items',
 	form_fields = 'form_fields',
 	forms = 'forms',
 	form_submissions = 'form_submissions',

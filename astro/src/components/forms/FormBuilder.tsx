@@ -1,8 +1,7 @@
 import { useState } from 'react';
-import { CheckCircle } from 'lucide-react';
+import { Alert, Card, tw } from '@noactionjaxn/another-react-tailwind-component-library';
 import DynamicForm from './DynamicForm';
 import type { FormField } from '@/types/directus-schema';
-import { cn } from '@/lib/utils';
 
 interface FormBuilderProps {
   className?: string;
@@ -67,21 +66,20 @@ const FormBuilder = ({ form, className, blockFormId }: FormBuilderProps) => {
 
   if (isSubmitted) {
     return (
-      <div className="flex flex-col items-center justify-center space-y-4 p-6 text-center">
-        <CheckCircle className="size-12 text-green-500" />
-        <p className="text-gray-600">{form.success_message || 'Your form has been submitted successfully.'}</p>
-      </div>
+      <Alert status="success" role="status" className={className}>
+        {form.success_message || 'Your form has been submitted successfully.'}
+      </Alert>
     );
   }
 
   return (
-    <div className={cn('space-y-6 border border-input p-8 rounded-lg', className)}>
-      {form.title && <h3 className="text-xl font-semibold mb-4">{form.title}</h3>}
+    <Card className={tw('space-y-6 p-8', className)}>
+      {form.title && <h3 className="text-xl font-semibold">{form.title}</h3>}
 
       {error && (
-        <div className="p-4 text-red-500 bg-red-100 rounded-md">
-          <strong>Error:</strong> {error}
-        </div>
+        <Alert status="danger" role="alert">
+          {error}
+        </Alert>
       )}
 
       <DynamicForm
@@ -91,7 +89,7 @@ const FormBuilder = ({ form, className, blockFormId }: FormBuilderProps) => {
         id={form.id}
         blockFormId={blockFormId}
       />
-    </div>
+    </Card>
   );
 };
 

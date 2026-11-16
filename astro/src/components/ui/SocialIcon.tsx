@@ -37,7 +37,7 @@ const SocialIcon = ({ service, alt, className, size = 24, ...props }: SocialIcon
     return (
       <div
         style={{ width: size, height: size }}
-        className={`bg-muted text-xs text-foreground dark:text-white flex items-center justify-center rounded-full ${className || ''}`}
+        className={`bg-default-100 text-xs text-default-900 flex items-center justify-center rounded-full ${className || ''}`}
         title={service}
         {...props}
       >
@@ -47,14 +47,7 @@ const SocialIcon = ({ service, alt, className, size = 24, ...props }: SocialIcon
   }
 
   return (
-    <img
-      src={icon}
-      alt={alt || `${service} icon`}
-      width={size}
-      height={size}
-      className={`dark:invert ${className || ''}`}
-      {...props}
-    />
+    <img src={icon} alt={alt || `${service} icon`} width={size} height={size} className={className || ''} {...props} />
   );
 };
 

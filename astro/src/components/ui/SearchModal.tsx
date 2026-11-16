@@ -1,19 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import {
-  CommandDialog,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command';
-import { Button } from '@/components/ui/button';
+import { useEffect, useState } from 'react';
+import { Command } from 'cmdk';
 import { Search } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import {
+  Badge,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+  IconButton,
+} from '@noactionjaxn/another-react-tailwind-component-library';
 import { debounce } from '@/lib/utils';
-import { DialogDescription, DialogTitle } from './dialog';
 import { searchContent } from '@/lib/directus/fetchers';
 
 type SearchResult = {
@@ -24,6 +22,10 @@ type SearchResult = {
   link: string;
 };
 
+/**
+ * Site search (⌘K / Ctrl+K): the library Dialog holding a cmdk command list,
+ * since the library has no command palette of its own.
+ */
 export default function SearchModal() {
   const [open, setOpen] = useState(false);
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -75,48 +77,63 @@ export default function SearchModal() {
 
   const debouncedFetchResults = debounce(fetchResults, 300);
 
+  const status = loading
+    ? 'Loading...'
+    : !searched
+      ? 'Enter a search term above to see results'
+      : results.length === 0
+        ? 'No results found'
+        : null;
+
   return (
-    <div className="sm:max-w-[540px] max-w-full">
-      <Button variant="ghost" size="icon" onClick={() => setOpen(true)} aria-label="Search">
-        <Search className="size-5" />
-      </Button>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <IconButton variant="ghost" aria-label="Search" onClick={() => setOpen(true)}>
+        <Search aria-hidden />
+      </IconButton>
 
-      <CommandDialog open={open} onOpenChange={setOpen}>
-        <DialogTitle className="p-2 sr-only">Search</DialogTitle>
-        <DialogDescription className="px-2 sr-only">Search for pages or posts</DialogDescription>
-        <CommandInput
-          placeholder="Search for pages or posts"
-          onValueChange={(value) => debouncedFetchResults(value)}
-          className="m-2 p-4 focus:outline-none focus-within:outline-none text-base leading-normal"
-        />
+      <DialogContent className="overflow-hidden p-0 sm:max-w-xl" showClose={false}>
+        <DialogTitle className="sr-only">Search</DialogTitle>
+        <DialogDescription className="sr-only">Search for pages or posts</DialogDescription>
 
-        <CommandList className="p-2 text-foreground max-h-[500px] overflow-auto">
-          {!loading && !searched && (
-            <CommandEmpty className="py-2 text-sm text-center">Enter a search term above to see results</CommandEmpty>
-          )}
-          {loading && <CommandEmpty className="py-2 text-sm text-center">Loading...</CommandEmpty>}
-          {!loading && searched && results.length === 0 && (
-            <CommandEmpty className="py-2 text-sm text-center">No results found</CommandEmpty>
-          )}
-          {!loading && results.length > 0 && (
-            <CommandGroup heading="Search Results" className="pt-2" forceMount>
-              {results.map((result) => (
-                <CommandItem
-                  key={result.id}
-                  className="flex items-start gap-4 px-2 py-3"
-                  onSelect={() => (window.location.href = result.link)}
-                >
-                  <Badge variant="default">{result.type}</Badge>
-                  <div className="ml-2 w-full">
-                    <p className="font-medium text-base">{result.title}</p>
-                    {result.description && <p className="text-sm mt-1 line-clamp-2">{result.description}</p>}
-                  </div>
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          )}
-        </CommandList>
-      </CommandDialog>
-    </div>
+        {/* Results come from the server, so cmdk's own filtering is off. */}
+        <Command shouldFilter={false} label="Search" className="flex flex-col">
+          <div className="flex items-center gap-2 border-b border-default-200 px-4">
+            <Search className="size-5 shrink-0 text-default-500" aria-hidden />
+            <Command.Input
+              placeholder="Search for pages or posts"
+              onValueChange={(value) => debouncedFetchResults(value)}
+              className="h-14 w-full bg-transparent text-base outline-none placeholder:text-default-500"
+            />
+          </div>
+
+          <Command.List className="max-h-[500px] overflow-y-auto p-2">
+            {status && <p className="py-6 text-center text-sm text-default-500">{status}</p>}
+            {!loading && results.length > 0 && (
+              <Command.Group
+                heading="Search Results"
+                className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-default-500"
+              >
+                {results.map((result) => (
+                  <Command.Item
+                    key={result.id}
+                    value={result.id}
+                    onSelect={() => (window.location.href = result.link)}
+                    className="flex cursor-pointer items-start gap-4 rounded-lg px-2 py-3 data-[selected=true]:bg-default-100"
+                  >
+                    <Badge variant="soft">{result.type}</Badge>
+                    <div className="w-full">
+                      <p className="text-base font-medium">{result.title}</p>
+                      {result.description && (
+                        <p className="mt-1 line-clamp-2 text-sm text-default-600">{result.description}</p>
+                      )}
+                    </div>
+                  </Command.Item>
+                ))}
+              </Command.Group>
+            )}
+          </Command.List>
+        </Command>
+      </DialogContent>
+    </Dialog>
   );
 }

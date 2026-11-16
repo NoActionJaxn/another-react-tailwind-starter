@@ -1,8 +1,12 @@
-import React from 'react';
-import { Button as ShadcnButton, buttonVariants } from '@/components/ui/button';
-import type { VariantProps } from 'class-variance-authority';
+import {
+  Button as LibraryButton,
+  type ButtonSize,
+  type ButtonVariant,
+} from '@noactionjaxn/another-react-tailwind-component-library';
 import { type LucideIcon, ArrowRight, Plus } from 'lucide-react';
-import { cn } from '@/lib/utils';
+
+/** Variant values stored in Directus (block_button.variant). */
+export type DirectusButtonVariant = 'default' | 'outline' | 'soft' | 'ghost' | 'link';
 
 export interface ButtonProps {
   id: string;
@@ -11,8 +15,8 @@ export interface ButtonProps {
   type?: 'page' | 'post' | 'url' | 'submit' | null;
   page?: { permalink: string | null };
   post?: { slug: string | null };
-  size?: VariantProps<typeof buttonVariants>['size'];
-  variant?: VariantProps<typeof buttonVariants>['variant'];
+  size?: ButtonSize;
+  variant?: DirectusButtonVariant | ButtonVariant | string | null;
   icon?: 'arrow' | 'plus';
   customIcon?: LucideIcon;
   iconPosition?: 'left' | 'right';
@@ -20,7 +24,34 @@ export interface ButtonProps {
   onClick?: () => void;
   disabled?: boolean;
   block?: boolean;
+  'data-directus'?: string;
 }
+
+const variantMap: Record<string, ButtonVariant> = {
+  default: 'solid',
+  solid: 'solid',
+  outline: 'outline',
+  soft: 'soft',
+  secondary: 'soft',
+  ghost: 'ghost',
+  link: 'ghost',
+};
+
+/** Maps a Directus variant to a library Button variant (solid when unknown). */
+export const toButtonVariant = (variant?: string | null): ButtonVariant => variantMap[variant ?? ''] ?? 'solid';
+
+/** Resolves the href for a Directus button: page permalink, post slug, or raw URL. */
+export const getButtonHref = ({ type, page, post, url }: Pick<ButtonProps, 'type' | 'page' | 'post' | 'url'>) => {
+  if (type === 'page' && page?.permalink) return page.permalink;
+  if (type === 'post' && post?.slug) return `/blog/${post.slug}`;
+
+  return url || undefined;
+};
+
+const icons: Record<'arrow' | 'plus', LucideIcon> = {
+  arrow: ArrowRight,
+  plus: Plus,
+};
 
 const Button = ({
   label,
@@ -29,7 +60,7 @@ const Button = ({
   type,
   page,
   post,
-  size = 'default',
+  size = 'md',
   icon,
   customIcon,
   iconPosition = 'left',
@@ -37,53 +68,43 @@ const Button = ({
   onClick,
   disabled = false,
   block = false,
+  'data-directus': dataDirectus,
 }: ButtonProps) => {
-  const icons: Record<'arrow' | 'plus', LucideIcon> = {
-    arrow: ArrowRight,
-    plus: Plus,
-  };
-
   const Icon = customIcon || (icon ? icons[icon] : null);
-
-  const href = (() => {
-    if (type === 'page' && page?.permalink) return page.permalink;
-    if (type === 'post' && post?.slug) return `/blog/${post.slug}`;
-
-    return url || undefined;
-  })();
-
-  const buttonClasses = cn(
-    buttonVariants({ variant, size, block }),
-    className,
-    disabled && 'opacity-50 cursor-not-allowed',
-  );
+  const href = type === 'submit' ? undefined : getButtonHref({ type, page, post, url });
 
   const content = (
-    <span className="flex items-center space-x-2">
-      {icon && iconPosition === 'left' && Icon && <Icon className="size-4 shrink-0" />}
+    <>
+      {Icon && iconPosition === 'left' && <Icon className="size-4 shrink-0" />}
       {label && <span>{label}</span>}
-      {icon && iconPosition === 'right' && Icon && <Icon className="size-4 shrink-0" />}
-    </span>
+      {Icon && iconPosition === 'right' && <Icon className="size-4 shrink-0" />}
+    </>
   );
 
-  if (href) {
+  const shared = {
+    variant: toButtonVariant(variant),
+    size,
+    block,
+    className,
+    'data-directus': dataDirectus,
+  };
+
+  if (href && !disabled) {
+    const external = !href.startsWith('/');
+
     return (
-      <ShadcnButton asChild variant={variant} size={size} className={buttonClasses} disabled={disabled}>
-        {href.startsWith('/') ? (
-          <a href={href}>{content}</a>
-        ) : (
-          <a href={href} target="_blank" rel="noopener noreferrer">
-            {content}
-          </a>
-        )}
-      </ShadcnButton>
+      <LibraryButton asChild {...shared}>
+        <a href={href} {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>
+          {content}
+        </a>
+      </LibraryButton>
     );
   }
 
   return (
-    <ShadcnButton variant={variant} size={size} className={buttonClasses} onClick={onClick} disabled={disabled}>
+    <LibraryButton {...shared} type={type === 'submit' ? 'submit' : 'button'} onClick={onClick} disabled={disabled}>
       {content}
-    </ShadcnButton>
+    </LibraryButton>
   );
 };
 

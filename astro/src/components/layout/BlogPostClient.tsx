@@ -2,12 +2,19 @@
 
 import { useState, useEffect } from 'react';
 import useSWR from 'swr';
-import DirectusImage from '@/components/shared/DirectusImage';
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+  Card,
+  Container,
+  Image,
+  Separator,
+  Typography,
+} from '@noactionjaxn/another-react-tailwind-component-library';
 import BaseText from '@/components/ui/Text';
-import { Separator } from '@/components/ui/separator';
 import ShareDialog from '@/components/ui/ShareDialog';
-import Headline from '@/components/ui/Headline';
-import Container from '@/components/ui/Container';
+import { getDirectusAssetURL } from '@/lib/directus/directus-utils';
 import type { Post, Author } from '@/types/directus-schema';
 import { setAttr } from '@/lib/directus/visualEditing';
 import { useVisualEditing } from '@/hooks/useVisualEditing';
@@ -76,126 +83,72 @@ export default function BlogPostClient({
 
   if (!post) return null;
 
+  const attr = (fields: string | string[], mode: 'popover' | 'modal' | 'drawer' = 'popover') =>
+    setAttr({ collection: 'posts', item: post.id, fields, mode });
+
   return (
-    <>
-      <Container className="py-12">
-        {post.image && (
-          <div className="mb-8">
-            <div
-              className="relative w-full h-[400px] overflow-hidden rounded-lg"
-              data-directus={setAttr({
-                collection: 'posts',
-                item: post.id,
-                fields: ['image', 'meta_header_image'],
-                mode: 'modal',
-              })}
-            >
-              <DirectusImage
-                uuid={post.image as string}
-                alt={post.title || 'post header image'}
-                className="object-cover"
-                fill
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 1200px"
-              />
-            </div>
-          </div>
-        )}
-
-        <Headline
-          as="h2"
-          headline={post.title}
-          className="!text-accent mb-4"
-          data-directus={setAttr({
-            collection: 'posts',
-            item: post.id,
-            fields: ['title', 'slug'],
-            mode: 'popover',
-          })}
+    <Container className="py-12">
+      {post.image && (
+        <Image
+          src={getDirectusAssetURL(post.image)}
+          alt={post.title || 'Post header image'}
+          fit="cover"
+          className="mb-8 h-[400px] w-full"
+          data-directus={attr(['image', 'meta_header_image'], 'modal')}
         />
-        <Separator className="mb-8" />
+      )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,_2fr)_400px] gap-12">
-          <main className="text-left">
-            <BaseText
-              content={post.content || ''}
-              data-directus={setAttr({
-                collection: 'posts',
-                item: post.id,
-                fields: ['content', 'meta_header_content'],
-                mode: 'drawer',
-              })}
-            />
-          </main>
+      <Typography asChild size="xxl" className="mb-4 font-semibold tracking-tight">
+        <h1 data-directus={attr(['title', 'slug'])}>{post.title}</h1>
+      </Typography>
+      <Separator className="mb-8" />
 
-          <aside className="space-y-6 p-6 rounded-lg max-w-[496px] h-fit bg-background-muted">
-            {author && (
-              <div
-                className="flex items-center space-x-4"
-                data-directus={setAttr({
-                  collection: 'posts',
-                  item: post.id,
-                  fields: ['author'],
-                  mode: 'popover',
-                })}
-              >
-                {author.avatar && (
-                  <DirectusImage
-                    uuid={typeof author.avatar === 'string' ? author.avatar : author.avatar.id}
-                    alt={authorName || 'author avatar'}
-                    className="rounded-full object-cover"
-                    width={48}
-                    height={48}
-                  />
-                )}
-                <div>{authorName && <p className="font-bold">{authorName}</p>}</div>
-              </div>
-            )}
+      <div className="grid grid-cols-1 gap-12 lg:grid-cols-[minmax(0,_2fr)_400px]">
+        <main className="text-left">
+          <BaseText content={post.content || ''} data-directus={attr(['content', 'meta_header_content'], 'drawer')} />
+        </main>
 
-            {post.description && (
-              <p
-                data-directus={setAttr({
-                  collection: 'posts',
-                  item: post.id,
-                  fields: 'description',
-                  mode: 'popover',
-                })}
-              >
-                {post.description}
-              </p>
-            )}
-            <div className="flex justify-start">
-              <ShareDialog postUrl={postUrl} postTitle={post.title} />
+        <Card variant="soft" className="h-fit max-w-[496px] space-y-6 p-6">
+          {author && (
+            <div className="flex items-center gap-4" data-directus={attr(['author'])}>
+              <Avatar>
+                {author.avatar && <AvatarImage src={getDirectusAssetURL(author.avatar)} alt={authorName || ''} />}
+                <AvatarFallback>{authorName?.[0]?.toUpperCase() ?? '?'}</AvatarFallback>
+              </Avatar>
+              {authorName && <p className="font-bold">{authorName}</p>}
             </div>
+          )}
 
+          {post.description && <p data-directus={attr('description')}>{post.description}</p>}
+
+          <ShareDialog postUrl={postUrl} postTitle={post.title} />
+
+          {relatedPosts.length > 0 && (
             <div>
               <Separator className="my-4" />
-              <h3 className="font-bold mb-4">Related Posts</h3>
-              <div className="space-y-4">
+              <h2 className="mb-4 font-bold">Related Posts</h2>
+              <ul className="space-y-4">
                 {relatedPosts.map((relatedPost) => (
-                  <a
-                    key={relatedPost.id}
-                    href={`/blog/${relatedPost.slug}`}
-                    className="flex items-center space-x-4 hover:text-accent group"
-                  >
-                    {relatedPost.image && (
-                      <div className="relative shrink-0 w-[150px] h-[100px] overflow-hidden rounded-lg">
-                        <DirectusImage
-                          uuid={relatedPost.image as string}
-                          alt={relatedPost.title || 'related post'}
-                          className="object-cover transition-transform duration-300 group-hover:scale-110"
-                          fill
-                          sizes="(max-width: 768px) 100px, (max-width: 1024px) 150px, 150px"
+                  <li key={relatedPost.id}>
+                    <a href={`/blog/${relatedPost.slug}`} className="group flex items-center gap-4">
+                      {relatedPost.image && (
+                        <Image
+                          src={getDirectusAssetURL(relatedPost.image)}
+                          alt=""
+                          fit="cover"
+                          zoomOnHover
+                          className="h-[100px] w-[150px] shrink-0"
                         />
-                      </div>
-                    )}
-                    <span className="font-heading">{relatedPost.title}</span>
-                  </a>
+                      )}
+                      <span className="font-medium group-hover:underline">{relatedPost.title}</span>
+                    </a>
+                  </li>
                 ))}
-              </div>
+              </ul>
             </div>
-          </aside>
-        </div>
-      </Container>
-    </>
+          )}
+        </Card>
+      </div>
+    </Container>
   );
 }

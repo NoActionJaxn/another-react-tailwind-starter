@@ -65,6 +65,31 @@ const pageFields = [
             },
           ],
           block_posts: ['id', 'tagline', 'headline', 'collection', 'limit'],
+          block_cta: [
+            'id',
+            'tagline',
+            'headline',
+            'description',
+            'layout',
+            'variant',
+            {
+              button_group: [
+                'id',
+                {
+                  buttons: ['id', 'label', 'variant', 'url', 'type', { page: ['permalink'] }, { post: ['slug'] }],
+                },
+              ],
+            },
+          ],
+          block_faq: ['id', 'tagline', 'headline', 'description', 'layout', 'items'],
+          block_sponsors: ['id', 'tagline', 'headline', { items: ['id', 'sort', 'image', 'name', 'url'] }],
+          block_accolades: [
+            'id',
+            'tagline',
+            'headline',
+            'animation',
+            { items: ['id', 'sort', 'quote', 'source', 'image', 'url'] },
+          ],
           block_form: [
             'id',
             'tagline',

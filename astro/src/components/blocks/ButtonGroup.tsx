@@ -1,21 +1,22 @@
-import React from 'react';
+import { tw } from '@noactionjaxn/another-react-tailwind-component-library';
 import Button, { type ButtonProps } from './Button';
-import { cn } from '@/lib/utils';
 
 export interface ButtonGroupProps {
   buttons: Array<ButtonProps>;
   className?: string;
 }
 
+/**
+ * A row of Directus buttons. Uses a plain flex row rather than the library ButtonGroup,
+ * which visually joins buttons into one segmented control.
+ */
 const ButtonGroup = ({ buttons, className }: ButtonGroupProps) => {
   if (!buttons || !buttons.length) return null;
 
-  const containerClasses = cn('flex gap-4', className);
-
   return (
-    <div className={containerClasses}>
+    <div className={tw('flex flex-wrap gap-4', className)}>
       {buttons.map((button, index) => (
-        <Button key={index} {...button} />
+        <Button key={button.id ?? index} {...button} />
       ))}
     </div>
   );

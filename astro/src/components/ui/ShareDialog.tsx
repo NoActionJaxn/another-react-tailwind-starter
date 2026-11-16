@@ -1,9 +1,9 @@
 'use client';
 
-import { Copy, Share } from 'lucide-react';
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { Copy, Share } from 'lucide-react';
 import {
+  Button,
   Dialog,
   DialogClose,
   DialogContent,
@@ -11,9 +11,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+  IconButton,
+  TextInput,
+} from '@noactionjaxn/another-react-tailwind-component-library';
 import SocialIcon from '@/components/ui/SocialIcon';
 
 interface ShareDialogProps {
@@ -30,66 +30,58 @@ const ShareDialog = ({ postUrl, postTitle }: ShareDialogProps) => {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const url = encodeURIComponent(postUrl);
+  const title = encodeURIComponent(postTitle);
   const socialLinks = [
-    {
-      service: 'reddit',
-      url: `http://www.reddit.com/submit?url=${encodeURIComponent(postUrl)}&title=${encodeURIComponent(postTitle)}`,
-    },
-    {
-      service: 'x',
-      url: `https://twitter.com/intent/tweet?url=${encodeURIComponent(postUrl)}&text=${encodeURIComponent(postTitle)}`,
-    },
-    {
-      service: 'linkedin',
-      url: `https://www.linkedin.com/shareArticle/?mini=true&url=${encodeURIComponent(
-        postUrl,
-      )}&title=${encodeURIComponent(postTitle)}`,
-    },
+    { service: 'reddit', url: `https://www.reddit.com/submit?url=${url}&title=${title}` },
+    { service: 'x', url: `https://twitter.com/intent/tweet?url=${url}&text=${title}` },
+    { service: 'linkedin', url: `https://www.linkedin.com/shareArticle/?mini=true&url=${url}&title=${title}` },
   ];
 
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" className="flex items-center space-x-2">
-          <Share className="size-4" />
-          <span>Share Blog</span>
+        <Button variant="outline">
+          <Share className="size-4" aria-hidden />
+          Share Blog
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Share this blog post</DialogTitle>
         </DialogHeader>
-        <div className="flex justify-center space-x-4 mb-1">
+        <div className="mb-1 flex justify-center gap-4">
           {socialLinks.map((social) => (
             <a
               key={social.service}
               href={social.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded bg-transparent inline-flex items-center justify-center transition-colors hover:opacity-70"
+              aria-label={`Share on ${social.service}`}
+              className="inline-flex items-center justify-center rounded transition-opacity hover:opacity-70"
             >
-              <SocialIcon service={social.service} size={32} className="size-8" />
+              <SocialIcon service={social.service} size={32} alt="" className="size-8" />
             </a>
           ))}
         </div>
-        <div className="flex items-center space-x-2">
-          <div className="grid flex-1 gap-2">
-            <Label htmlFor="link" className="sr-only">
-              Link
-            </Label>
-            <Input id="link" value={postUrl} readOnly />
-          </div>
-          <Button type="button" size="sm" className="px-3" onClick={handleCopy}>
-            <span className="sr-only">Copy</span>
-            <Copy />
-          </Button>
-        </div>
-        {copied && <p className="mt-2 text-sm text-green-600">Link copied to clipboard!</p>}
+        <TextInput
+          label="Link"
+          labelPlacement="border"
+          value={postUrl}
+          readOnly
+          block
+          appendElement={
+            <IconButton variant="ghost" size="sm" aria-label="Copy link" onClick={handleCopy}>
+              <Copy aria-hidden />
+            </IconButton>
+          }
+        />
+        <p role="status" className="min-h-5 text-sm text-green-700">
+          {copied ? 'Link copied to clipboard!' : ''}
+        </p>
         <DialogFooter className="sm:justify-start">
           <DialogClose asChild>
-            <Button type="button" variant="secondary">
-              Close
-            </Button>
+            <Button variant="soft">Close</Button>
           </DialogClose>
         </DialogFooter>
       </DialogContent>

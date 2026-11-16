@@ -5,6 +5,10 @@ import Posts from './Posts';
 import Hero from './Hero';
 import RichText from './RichText';
 import Pricing from './Pricing';
+import CallToAction from './CallToAction';
+import Faq from './Faq';
+import Sponsors from './Sponsors';
+import Testimonials from './Testimonials';
 import type { PageBlock } from '@/types/directus-schema';
 
 interface BaseBlockProps {
@@ -21,6 +25,10 @@ export default function BaseBlock({ block }: BaseBlockProps) {
     block_form: Form,
     block_richtext: RichText,
     block_pricing: Pricing,
+    block_cta: CallToAction,
+    block_faq: Faq,
+    block_sponsors: Sponsors,
+    block_accolades: Testimonials,
   };
 
   const Component = components[block.collection];

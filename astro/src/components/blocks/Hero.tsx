@@ -1,13 +1,19 @@
-import Tagline from '@/components/ui/Tagline';
-import Headline from '@/components/ui/Headline';
-import BaseText from '@/components/ui/Text';
-import DirectusImage from '@/components/shared/DirectusImage';
+import {
+  Hero as LibraryHero,
+  HeroActions,
+  HeroContent,
+  HeroDescription,
+  HeroImage,
+  HeroTitle,
+  Typography,
+} from '@noactionjaxn/another-react-tailwind-component-library';
 import ButtonGroup from '@/components/blocks/ButtonGroup';
-import { cn } from '@/lib/utils';
+import { getDirectusAssetURL } from '@/lib/directus/directus-utils';
 import { getIsDraftPreview, setBlockAttr } from '@/lib/directus/visualEditing';
 import type { ButtonProps } from '@/components/blocks/Button';
 
-type LayoutOption = 'image_left' | 'image_center' | 'image_right';
+/** `image_center` is the pre-library value; it renders as `full`. */
+type LayoutOption = 'image_left' | 'image_right' | 'full' | 'image_center';
 
 interface HeroProps {
   data: {
@@ -24,73 +30,49 @@ interface HeroProps {
   };
 }
 
-const layoutStyles = {
-  image_center: {
-    layout: 'items-center text-center',
-    content: 'md:w-3/4 xl:w-2/3 items-center',
-    image: 'md:w-3/4 xl:w-2/3 h-[400px]',
-  },
-  image_left: {
-    layout: 'md:flex-row-reverse items-center',
-    content: 'md:w-1/2 items-start',
-    image: 'md:w-1/2 h-[562px]',
-  },
-  image_right: {
-    layout: 'md:flex-row items-center',
-    content: 'md:w-1/2 items-start',
-    image: 'md:w-1/2 h-[562px]',
-  },
-};
-
 export default function Hero({ data }: HeroProps) {
   const { id, layout, tagline, headline, description, image, button_group } = data;
-  const styles = layoutStyles[layout] ?? layoutStyles.image_left;
+  const isFull = layout === 'full' || layout === 'image_center';
+  const imageFirst = layout === 'image_left';
   const hasButtons = !!button_group?.buttons?.length;
   const isDraftPreview = getIsDraftPreview();
 
+  const attr = (fields: string | string[], mode: 'popover' | 'modal' = 'popover') =>
+    setBlockAttr({ blockCollection: 'block_hero', blockItemId: id, fields, mode });
+
+  const heroImage = image ? (
+    <HeroImage
+      src={getDirectusAssetURL(image)}
+      alt={tagline || headline || 'Hero image'}
+      fit={isFull ? 'cover' : 'contain'}
+      data-directus={attr(['image', 'layout'], 'modal')}
+    />
+  ) : null;
+
   return (
-    <section className={cn('relative w-full mx-auto flex flex-col gap-6 md:gap-12', styles.layout)}>
-      <div className={cn('flex flex-col gap-4 w-full', styles.content)}>
-        <Tagline
-          tagline={tagline}
-          data-directus={setBlockAttr({
-            blockCollection: 'block_hero',
-            blockItemId: id,
-            fields: 'tagline',
-            mode: 'popover',
-          })}
-        />
-        <Headline
-          headline={headline}
-          data-directus={setBlockAttr({
-            blockCollection: 'block_hero',
-            blockItemId: id,
-            fields: 'headline',
-            mode: 'popover',
-          })}
-        />
+    <LibraryHero full={isFull}>
+      {imageFirst && heroImage}
+      <HeroContent>
+        {tagline && (
+          <Typography asChild size="lg" className="font-medium tracking-wide uppercase">
+            <p data-directus={attr('tagline')}>{tagline}</p>
+          </Typography>
+        )}
+        <HeroTitle data-directus={attr('headline')}>{headline}</HeroTitle>
         {description && (
-          <BaseText
-            content={description}
-            data-directus={setBlockAttr({
-              blockCollection: 'block_hero',
-              blockItemId: id,
-              fields: 'description',
-              mode: 'popover',
-            })}
-          />
+          <HeroDescription asChild>
+            <div
+              className="prose max-w-none [color:inherit]"
+              dangerouslySetInnerHTML={{ __html: description }}
+              data-directus={attr('description')}
+            />
+          </HeroDescription>
         )}
         {hasButtons && (
-          <div
-            className={cn(layout === 'image_center' && 'flex justify-center', 'mt-6')}
+          <HeroActions
             data-directus={setBlockAttr(
               isDraftPreview
-                ? {
-                    blockCollection: 'block_hero',
-                    blockItemId: id,
-                    fields: 'button_group',
-                    mode: 'modal',
-                  }
+                ? { blockCollection: 'block_hero', blockItemId: id, fields: 'button_group', mode: 'modal' }
                 : {
                     blockCollection: 'block_button_group',
                     blockItemId: button_group!.id,
@@ -100,28 +82,10 @@ export default function Hero({ data }: HeroProps) {
             )}
           >
             <ButtonGroup buttons={button_group!.buttons!} />
-          </div>
+          </HeroActions>
         )}
-      </div>
-      {image && (
-        <div
-          className={cn('relative w-full', styles.image)}
-          data-directus={setBlockAttr({
-            blockCollection: 'block_hero',
-            blockItemId: id,
-            fields: ['image', 'layout'],
-            mode: 'modal',
-          })}
-        >
-          <DirectusImage
-            uuid={image}
-            alt={tagline || headline || 'Hero Image'}
-            fill
-            sizes={layout === 'image_center' ? '100vw' : '(max-width: 768px) 100vw, 50vw'}
-            className="object-contain"
-          />
-        </div>
-      )}
-    </section>
+      </HeroContent>
+      {!imageFirst && heroImage}
+    </LibraryHero>
   );
 }

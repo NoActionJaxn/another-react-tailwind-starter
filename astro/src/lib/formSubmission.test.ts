@@ -61,3 +61,45 @@ test('combined uploads stay below the default Vercel request ceiling', () => {
   assert.equal(result.success, false);
   if (!result.success) assert.match(result.error, /Combined file uploads/);
 });
+
+const libraryFields: FormField[] = [
+  { id: 'email', name: 'email', type: 'email', label: 'Email', required: true },
+  { id: 'site', name: 'site', type: 'url', label: 'Website' },
+  { id: 'seats', name: 'seats', type: 'number', label: 'Seats', validation: 'min:1|max:50' },
+  { id: 'phone', name: 'phone', type: 'tel', label: 'Phone' },
+  { id: 'news', name: 'news', type: 'switch', label: 'Newsletter', required: true },
+];
+
+const submit = (values: Record<string, string>) => {
+  const formData = new FormData();
+  for (const [key, value] of Object.entries(values)) formData.set(key, value);
+
+  return validateFormSubmission(libraryFields, formData).success;
+};
+
+test('server validation covers the library input types', async (t) => {
+  const valid = {
+    email: 'a@example.com',
+    site: 'https://example.com',
+    seats: '5',
+    phone: '+15555550123',
+    news: 'true',
+  };
+  assert.equal(submit(valid), true);
+  assert.equal(submit({ email: 'a@example.com', news: 'true' }), true, 'optional fields may be omitted');
+  assert.equal(submit({ ...valid, site: '', seats: '', phone: '' }), true, 'optional fields may be empty');
+
+  const cases = [
+    ['invalid email', { email: 'nope' }],
+    ['invalid url', { site: 'not a url' }],
+    ['non-numeric number', { seats: 'five' }],
+    ['number below min', { seats: '0' }],
+    ['number above max', { seats: '51' }],
+    ['phone not in E.164', { phone: '555-0123' }],
+    ['required switch off', { news: 'false' }],
+  ] as const;
+
+  for (const [name, override] of cases) {
+    await t.test(name, () => assert.equal(submit({ ...valid, ...override }), false));
+  }
+});
