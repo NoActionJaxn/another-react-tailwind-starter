@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import react from '@astrojs/react';
 import vercel from '@astrojs/vercel';
+import tailwindcss from '@tailwindcss/vite';
 import { defineConfig, memoryCache } from 'astro/config';
 import { fetchRedirects } from './src/lib/fetchRedirects';
 
@@ -46,6 +47,7 @@ export default defineConfig({
   redirects: redirectsConfig,
 
   vite: {
+    plugins: [tailwindcss()],
     envPrefix: ['PUBLIC_', 'DIRECTUS_'],
     assetsInclude: ['**/*.svg'],
   },
